@@ -1,0 +1,18 @@
+This will be my first IOT project i.e. Arduino based Alcohol breath analyzer .
+Purpose of the project is to learn APIs and various IOT components
+
+It will be developed in stages
+Result Outputs:-
+1- Output will be displayed on 128x128 Pixel OLED Display Module for Arduino
+2- Output will be stored in Cloud Google spread sheet
+3- Output will be displayed on  Android App and Google spread sheet
+4- Output will be emailed to specific people when limit is reached
+
+ Analysis of data
+1- Output will maintain a calendar, drinking pattern, Occasion, location,Bar
+2-Effects of alcohol on body
+3-Cool off times
+4-Behavioural change
+5-Integrated via App it will start recording talks once activated with higher alcohol limit
+6- If too drunk locks Credit card
+
