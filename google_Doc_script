@@ -1,0 +1,28 @@
+var id = '1DzfKaZff3rIdrY7RQK7cndg-NCBM3D0jRmBwpI57hC8';  // ID der Tabelle
+
+function doGet(e)
+{// GET Receive Parameters
+  if (e.parameter==undefined)
+  {   // if no parameters are received via GET
+    result = 'Parameter are missing';
+  }
+  else {
+    var sheet = SpreadsheetApp.openById(id).getActiveSheet(); // Assignment of the spreadsheet and active table of a variable
+    var newRow = sheet.getLastRow() + 1;  //  Last written line + 1
+    var rowData = [];        // create an array
+    rowData[0] = new Date(); // timestamp in column A First element of array rowData
+    
+    for (var param in e.parameter) {    // Received all parameters
+      var value = e.parameter[param];   // read values
+      rowData[parseInt(param)] = value; // Save values to array. Position determines the number in the parameter
+    } 
+    
+    // Create new line in the length of the array with values
+    var newRange = sheet.getRange(newRow, 1, 1, rowData.length);
+    newRange.setValues([rowData]);    // Fill the line with data from array
+    var result =  'Ok'// Text of the answer
+  }
+
+  // Send answer as text to browser
+  return ContentService.createTextOutput(result);
+}
