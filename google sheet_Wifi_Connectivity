@@ -1,0 +1,121 @@
+#include <ssl_client.h>
+#include <WiFiClientSecure.h>
+#define LED_BUILTIN 22         // LED an ESP32 LOLIN32
+ 
+ char* ssid     = "beacon";     
+ char* password = "Grease@1234";
+ 
+char*  server = "script.google.com";  // Server URL
+// google script key
+ char* key = "1DzfKaZff3rIdrY7RQK7cndg-NCBM3D0jRmBwpI57hC8"; 
+ 
+WiFiClientSecure client;
+#define debug true
+ 
+boolean SendeZumGoogle(String URL)
+{
+  String movedURL;
+  String line;
+ 
+  if (debug)Serial.println("connect to script.google.com");
+  if (!client.connect(server, 443))
+  {
+    if (debug) Serial.println("Connection failed!");
+    return false;
+  }
+ 
+  if (debug) Serial.println("Connected!");
+  // ESP32 Generates HTTPS request to Google sheet
+  client.println("GET " + URL);
+  client.println("Host: script.google.com" );
+  client.println("Connection: close");
+  client.println();
+ 
+  // ESP32 receives response from Google Sheets
+  while (client.connected())     // ESP32 receives headers
+  {
+    line = client.readStringUntil('\n');
+    if (debug) Serial.println(line);
+    if (line == "\r") break;      // Received end of header
+    if (line.indexOf ( "Location" ) >= 0)   //Forwarding in the header?
+    { // Neue URL merken
+      movedURL = line.substring ( line.indexOf ( ":" ) + 2 ) ;
+    }
+  }
+ 
+  while (client.connected())    // Google Answer HTML Read line by line
+  {
+    if (client.available())
+    {
+      line = client.readStringUntil('\r');
+      if (debug) Serial.print(line);
+    }
+  }
+  client.stop();
+ 
+  movedURL.trim(); // blank, \ n remove
+  if (debug) Serial.println("forwarding URL: \"" + movedURL + "\"");
+ 
+  if (movedURL.length() < 10) return false; // Forwarding not there
+ 
+  if (debug) Serial.println("\n Start forwarding...");
+  if (!client.connect(server, 443))
+  {
+    if (debug) Serial.println("Forwarding failed!");
+    return false;
+  }
+ 
+  Serial.println("Connected!");
+  // // ESP32 Generates HTTPS request to Google Sheets
+  client.println("GET " + movedURL);
+  client.println("Host: script.google.com");
+  client.println("Connection: close");
+  client.println();
+ 
+  while (client.connected()) // ESP32 receives headers
+  {
+    line = client.readStringUntil('\n');
+    if (debug) Serial.println(line);
+    if (line == "\r")break;
+  }
+  
+  while (client.connected()) //Google Answer HTML Read line by line
+  {
+    if (client.available())
+    {
+      line = client.readStringUntil('\r');
+      if (debug) Serial.print(line);
+    }
+  }
+  client.stop();
+  if (line == "Ok") return true;
+}
+ 
+ 
+void setup()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, 1);
+  Serial.begin(115200);
+  Serial.println("Wait for connection");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("IP Addresse: ");
+  Serial.println(WiFi.localIP());
+  String URL="https://script.google.com/macros/s/";
+  URL += key;
+  URL += "/exec?";
+  URL += "1_Spalte=100&2_Spalte=200&3_Spalte=300&4_Spalte=400&5_Spalte=500&6_Spalte=600";
+  Serial.println(URL);
+  if (SendeZumGoogle(URL)) digitalWrite(LED_BUILTIN, 0);
+}
+ 
+void loop()
+{
+  delay(1);
+}
